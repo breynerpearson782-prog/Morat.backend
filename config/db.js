@@ -3,8 +3,20 @@
 
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
+const fs = require("fs");
 
-const DB_PATH = path.join(__dirname, "..", "database", "morat.db");
+// En producción (Railway), define la variable de entorno DATABASE_PATH apuntando
+// al volumen persistente, ej: DATABASE_PATH=/data/morat.db
+// En local, si no la defines, usa la carpeta database/ del proyecto (comportamiento anterior).
+const DB_PATH = process.env.DATABASE_PATH
+  ? process.env.DATABASE_PATH
+  : path.join(__dirname, "..", "database", "morat.db");
+
+// Si la carpeta destino no existe todavía (ej. primera vez que se monta el volumen), la crea.
+const DB_DIR = path.dirname(DB_PATH);
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
